@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Text;
+using System.Collections.Generic;
 using TMPro;
 
 namespace Plinko
@@ -15,7 +15,7 @@ namespace Plinko
         [SerializeField] private Button setTargetsButton;
         [SerializeField] private Toggle controlledToggle;
         [SerializeField] private TMP_Dropdown ballCountDropdown;
-        
+
         [Header("Betting UI")]
         [SerializeField] private BettingManager bettingManager;
         [SerializeField] private TMP_Text balanceText;
@@ -24,18 +24,16 @@ namespace Plinko
         private float sessionTotalWin = 0f;
 
         private GameManager gameManager;
-        private readonly StringBuilder resultsBuilder = new StringBuilder(512);
-        private readonly StringBuilder tempBuilder = new StringBuilder(32);
+        private readonly List<string> resultsLines = new List<string>(5);
 
         private void Start()
         {
-            Debug.Log("[PLINKO] UiManager Start");
             gameManager = GameManager.Instance;
 
             dropButton.onClick.AddListener(OnDropClicked);
             setTargetsButton.onClick.AddListener(OnSetTargetsClicked);
             controlledToggle.onValueChanged.AddListener(OnControlledToggleChanged);
-            
+
             // Setup dropdown options
             if (ballCountDropdown != null)
             {
@@ -58,7 +56,6 @@ namespace Plinko
 
             BindEvents();
             UpdateUI();
-            Debug.Log("[PLINKO] UiManager initialization complete");
         }
 
         private void OnDestroy()
@@ -93,11 +90,9 @@ namespace Plinko
 
         private void OnDropClicked()
         {
-            Debug.Log("[PLINKO] UI: Drop button clicked");
             if (gameManager != null)
             {
                 int ballCount = GetSelectedBallCount();
-                Debug.Log($"[PLINKO] UI: Dropping {ballCount} ball(s)");
                 gameManager.DropBalls(ballCount);
             }
         }
@@ -119,11 +114,9 @@ namespace Plinko
 
         private void OnSetTargetsClicked()
         {
-            Debug.Log("[PLINKO] UI: Set targets button clicked");
             if (targetInputField == null || gameManager == null) return;
 
             string input = targetInputField.text;
-            Debug.Log($"[PLINKO] UI: Parsing targets from input: '{input}'");
             string[] parts = input.Split(',');
 
             int[] targets = new int[parts.Length];
@@ -139,15 +132,13 @@ namespace Plinko
                 }
             }
 
-            Debug.Log($"[PLINKO] UI: Parsed {targets.Length} targets: [{string.Join(", ", targets)}]");
             gameManager.SetTargetSlots(targets);
-            resultsBuilder.Clear();
+            resultsLines.Clear();
             UpdateUI();
         }
 
         private void OnControlledToggleChanged(bool isOn)
         {
-            Debug.Log($"[PLINKO] UI: Controlled toggle changed to: {isOn}");
             if (gameManager != null)
             {
                 gameManager.SetControlledOutcome(isOn);
@@ -157,26 +148,15 @@ namespace Plinko
 
         private void HandleBallResult(int slotId, float multiplier)
         {
-            Debug.Log($"[PLINKO] UI: Received ball result - Slot {slotId}, Multiplier x{multiplier}");
-            // Build result line without allocation
-            tempBuilder.Clear();
-            tempBuilder.Append("Slot ").Append(slotId).Append(" (x").Append(multiplier).Append(")\n");
-
-            // Insert at beginning
-            resultsBuilder.Insert(0, tempBuilder.ToString());
-
-            // Limit results display
-            if (resultsBuilder.Length > 500)
-            {
-                resultsBuilder.Length = 500;
-            }
+            resultsLines.Insert(0, $"Slot {slotId} (x{multiplier})");
+            if (resultsLines.Count > 5)
+                resultsLines.RemoveAt(5);
 
             UpdateUI();
         }
 
         private void HandleBallStateChanged(bool inPlay)
         {
-            Debug.Log($"[PLINKO] UI: Ball state changed - In play: {inPlay}");
             bool canDrop = !inPlay && (gameManager == null || !gameManager.IsMultiDropInProgress);
             if (dropButton != null)
             {
@@ -187,7 +167,6 @@ namespace Plinko
 
         private void HandleTargetsCompleted()
         {
-            Debug.Log("[PLINKO] UI: All targets completed");
             if (targetText != null)
             {
                 targetText.text = "All targets complete!";
@@ -205,12 +184,9 @@ namespace Plinko
                 targetText.text = target >= 0 ? $"Next Target: Slot {target}" : "Mode: Random";
             }
 
-
             // Update results text
-            if (resultsText != null)
-            {
-                resultsText.text = resultsBuilder.ToString();
-            }
+            if (resultsText is not null)
+                resultsText.text = string.Join("\n", resultsLines);
 
             // Update drop button state
             bool canDrop = !gameManager.IsBallInPlay && !gameManager.IsMultiDropInProgress;
@@ -219,6 +195,7 @@ namespace Plinko
                 dropButton.interactable = canDrop;
             }
         }
+
         private void UpdateBalanceDisplay(float balance)
         {
             if (balanceText != null)

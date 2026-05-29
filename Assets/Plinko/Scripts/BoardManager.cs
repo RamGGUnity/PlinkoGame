@@ -56,17 +56,14 @@ namespace Plinko
 
         public void GenerateBoard()
         {
-            Debug.Log($"[PLINKO] GenerateBoard called - {pegRows} rows, spacing: {pegSpacing}x{rowSpacing}");
             ClearBoard();
             GeneratePegs();
             GenerateSlots();
             GenerateWalls();
-            Debug.Log($"[PLINKO] Board generation complete - Width: {boardWidth}, Height: {boardHeight}");
         }
 
         private void ClearBoard()
         {
-            Debug.Log($"[PLINKO] Clearing board - {activePegs.Count} pegs, {activeSlots.Count} slots");
             foreach (var peg in activePegs)
             {
                 ReturnPegToPool(peg);
@@ -130,7 +127,6 @@ namespace Plinko
             const int startPegs = 3;
             float startY = pegRows * rowSpacing * 0.5f;
             Transform parent = pegPoolParent != null ? pegPoolParent : transform;
-            Debug.Log($"[PLINKO] Generating pegs - Start Y: {startY}");
 
             for (int row = 0; row < pegRows; row++)
             {
@@ -156,13 +152,11 @@ namespace Plinko
             int lastRowPegs = startPegs + pegRows - 1;
             boardWidth = (lastRowPegs - 1) * pegSpacing + pegSpacing;
             boardHeight = pegRows * rowSpacing;
-            Debug.Log($"[PLINKO] Generated {activePegs.Count} pegs in {pegRows} rows");
         }
 
         private void GenerateSlots()
         {
             int slotCount = SlotCount;
-            Debug.Log($"[PLINKO] Generating {slotCount} slots");
 
             // Position slots between pegs of the last row
             int lastRowPegs = 3 + pegRows - 1;
@@ -195,7 +189,6 @@ namespace Plinko
                     activeSlots.Add(slot);
                 }
             }
-            Debug.Log($"[PLINKO] Slots generated with multipliers: [{string.Join(", ", multiplierCache[..slotCount])}]");
         }
 
         private void GenerateMultipliers(int count)
@@ -223,7 +216,6 @@ namespace Plinko
             int lastRowPegs = 3 + pegRows - 1;
             float lastRowWidth = (lastRowPegs - 1) * pegSpacing;
             float wallX = lastRowWidth * 0.5f;
-            Debug.Log($"[PLINKO] Generating walls at X: +/-{wallX}");
 
             // Reuse existing walls or create new ones
             if (leftWall == null)
@@ -263,17 +255,11 @@ namespace Plinko
             return lastRowY - rowSpacing * 0.8f;
         }
 
-        public void GetDropPosition(out Vector3 position)
-        {
-            position.x = 0f;
-            position.y = (pegRows * rowSpacing * 0.5f) + 1f;
-            position.z = 0f;
-        }
-
-        // Keep for backwards compatibility
         public Vector3 GetDropPosition()
         {
-            GetDropPosition(out positionCache);
+            positionCache.x = 0f;
+            positionCache.y = (pegRows * rowSpacing * 0.5f) + 1f;
+            positionCache.z = 0f;
             return positionCache;
         }
     }

@@ -17,7 +17,6 @@ namespace Plinko
 
         public void Initialize(int id, float mult)
         {
-            Debug.Log($"[PLINKO] Slot {id} initialized with multiplier x{mult}");
             slotId = id;
             multiplier = mult;
 #if UNITY_EDITOR
@@ -33,7 +32,6 @@ namespace Plinko
 
         public void TriggerBallLanded(PlinkoBall ball = null)
         {
-            Debug.Log($"[PLINKO] Slot {slotId} triggered - Ball landed (x{multiplier})");
             OnBallLanded?.Invoke(slotId, multiplier, ball);
         }
 

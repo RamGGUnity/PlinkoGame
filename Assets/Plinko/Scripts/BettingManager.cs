@@ -92,11 +92,6 @@ namespace Plinko
             }
         }
 
-        private void OnSliderValueChanged(float value)
-        {
-            SetBetAmount(value);
-        }
-
         private void OnBetInputChanged(string value)
         {
             if (float.TryParse(value, out float newBet))
@@ -197,7 +192,7 @@ namespace Plinko
             }
             
             OnWinRecorded?.Invoke(winAmount);
-            Debug.Log($"[BETTING] Won: ${winAmount:F2}, New Balance: ${currentBalance:F2}");
+            Debug.Log($"Won: ${winAmount:F2}, New Balance: ${currentBalance:F2}");
         }
 
         private void HideWinAmount()
@@ -211,7 +206,6 @@ namespace Plinko
             currentBalance = startingBalance;
             currentSessionTotalWin = 0;
             UpdateBalanceDisplay();
-            Debug.Log($"[BETTING] Balance reset to ${currentBalance:F2}");
         }
 
         public void AddBalance(float amount)

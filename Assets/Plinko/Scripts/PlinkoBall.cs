@@ -42,7 +42,6 @@ namespace Plinko
 
         public void Initialize(int targetSlot, float slotX, int rows, float slotY, float pegSpace, float rowSpace, System.Action<PlinkoBall> landedCallback = null)
         {
-            Debug.Log($"[PLINKO] Ball initialized - Target slot: {targetSlot}, X: {slotX}, Rows: {rows}");
             targetSlotId = targetSlot;
             targetSlotX = slotX;
             totalRows = rows;
@@ -54,26 +53,8 @@ namespace Plinko
             StartCoroutine(AnimateBounce());
         }
 
-        public void InitializeRandom(int rows, float slotY, float pegSpace, float rowSpace, int slotCount, System.Func<int, float> getSlotX)
-        {
-            // Pick a random slot and use its actual X position
-            int randomSlot = Random.Range(0, slotCount);
-            targetSlotId = randomSlot;
-            totalRows = rows;
-            pegSpacing = pegSpace;
-            rowSpacing = rowSpace;
-            endY = slotY;
-
-            targetSlotX = getSlotX(randomSlot);
-            Debug.Log($"[PLINKO] [{name}] Initialized (random) - Target slot: {randomSlot}, X: {targetSlotX}, Rows: {rows}");
-
-            StartCoroutine(AnimateBounce());
-        }
-
         private IEnumerator AnimateBounce()
         {
-            Debug.Log($"[PLINKO] [{name}] Animation started from {transform.position}, target slot: {targetSlotId}, target X: {targetSlotX}");
-
             // Disable collider during animation to prevent premature slot triggers
             if (ballCollider != null)
             {
@@ -83,7 +64,6 @@ namespace Plinko
             CalculateZigZagPath();
 
             int pathCount = bouncePath.Count;
-            Debug.Log($"[PLINKO] [{name}] Calculated path with {pathCount} waypoints");
             for (int i = 0; i < pathCount - 1; i++)
             {
                 yield return AnimateSegment(bouncePath[i], bouncePath[i + 1]);
@@ -91,10 +71,8 @@ namespace Plinko
 
             // Final settle into slot
             Vector2 lastPos = bouncePath[pathCount - 1];
-            Debug.Log($"[PLINKO] [{name}] Final drop from ({lastPos.x}, {lastPos.y}) to ({targetSlotX}, {endY - 0.25f})");
             yield return AnimateFinalDrop(lastPos.y, targetSlotX, endY - 0.25f);
 
-            Debug.Log($"[PLINKO] [{name}] Animation complete at position {transform.position}, calling DetectSlotCollision");
             DetectSlotCollision();
         }
 
@@ -242,32 +220,28 @@ namespace Plinko
             // Use direct callback (set at Initialize time) — avoids physics detection entirely
             if (onLanded != null)
             {
-                Debug.Log($"[PLINKO] [{name}] Landing in slot {targetSlotId} via direct callback");
                 onLanded(this);
                 return;
             }
 
             // Physics fallback for cases where no callback was provided
             Vector2 detectionPos = new Vector2(targetSlotX, endY);
-            Debug.Log($"[PLINKO] [{name}] Detecting slot collision at {detectionPos} (target was slot {targetSlotId})");
             int hitCount = Physics2D.OverlapCircle(detectionPos, slotDetectionRadius, contactFilter, hitBuffer);
 
             for (int i = 0; i < hitCount; i++)
             {
                 if (hitBuffer[i].TryGetComponent(out Slot slot))
                 {
-                    Debug.Log($"[PLINKO] [{name}] LANDED in slot {slot.SlotId} (x{slot.Multiplier})");
                     slot.TriggerBallLanded(this);
                     return;
                 }
             }
 
-            Debug.LogError($"[PLINKO] [{name}] NO SLOT DETECTED! Position: {transform.position}, Target slot was: {targetSlotId}, Target X was: {targetSlotX}");
+            Debug.LogError($"No slot detected! Position: {transform.position}, Target slot: {targetSlotId}, Target X: {targetSlotX}");
         }
 
         public void ResetBall()
         {
-            Debug.Log($"[PLINKO] [{name}] ResetBall called");
             targetSlotId = -1;
             onLanded = null;
             hasLanded = false;
