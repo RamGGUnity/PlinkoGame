@@ -67,6 +67,7 @@ namespace Plinko
             for (int i = 0; i < pathCount - 1; i++)
             {
                 yield return AnimateSegment(bouncePath[i], bouncePath[i + 1]);
+                TriggerPegAt(bouncePath[i + 1]);
             }
 
             // Final settle into slot
@@ -74,6 +75,18 @@ namespace Plinko
             yield return AnimateFinalDrop(lastPos.y, targetSlotX, endY - 0.25f);
 
             DetectSlotCollision();
+        }
+
+        private void TriggerPegAt(Vector2 position)
+        {
+            int count = Physics2D.OverlapCircle(position, pegSpacing * 0.6f, contactFilter, hitBuffer);
+            for (int i = 0; i < count; i++)
+            {
+                if (hitBuffer[i].TryGetComponent(out Peg peg))
+                {
+                    peg.Pulse();
+                }
+            }
         }
 
         private IEnumerator AnimateSegment(Vector2 start, Vector2 end)

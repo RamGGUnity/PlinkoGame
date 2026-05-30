@@ -5,10 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Games/Marble/Scenes/Marble.unity
     guid: d744199ab9a13a444b225e1887daef9c
-  - enabled: 0
+  - enabled: 1
     path: Assets/Plinko/Scenes/PlinkoGame.unity
     guid: d09ad1aefe68318408d2fa2e4500c341
   m_configObjects:
